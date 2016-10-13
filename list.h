@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 
-typedef intptr_t val_t;
+#define MAX_LAST_NAME_LEN 16
+
+typedef char val_t[MAX_LAST_NAME_LEN];
 
 typedef struct node {
     val_t data;

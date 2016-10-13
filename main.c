@@ -24,8 +24,8 @@ llist_t *merge_list(llist_t *a, llist_t *b)
     node_t *current = NULL;
     while (a->size && b->size) {
         llist_t *small = (llist_t *)
-                         ((intptr_t) a * (a->head->data <= b->head->data) +
-                          (intptr_t) b * (a->head->data > b->head->data));
+                         ((intptr_t) a * (strcmp(a->head->data,b->head->data) < 0 ? 1:0) +
+                          (intptr_t) b * (strcmp(a->head->data,b->head->data) < 0 ? 0:1));
         if (current) {
             current->next = small->head;
             current = current->next;
@@ -159,8 +159,8 @@ int main(int argc, char const *argv[])
      */
     printf("input unsorted data line-by-line\n");
     for (int i = 0; i < data_count; ++i) {
-        long int data;
-        scanf("%ld", &data);
+        char data[MAX_LAST_NAME_LEN];
+        scanf("%s", &data);
         list_add(the_list, data);
     }
 
