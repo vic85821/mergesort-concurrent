@@ -53,10 +53,14 @@ void list_print(llist_t *list)
 {
     node_t *cur = list->head;
     /* FIXME: we have to validate the sorted results in advance. */
+#ifndef TEST
     printf("\nsorted results:\n");
+#endif
     while (cur) {
         printf("%s\n", cur->data);
         cur = cur->next;
     }
+#ifndef TEST
     printf("\n");
+#endif
 }

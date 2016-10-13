@@ -157,7 +157,9 @@ int main(int argc, char const *argv[])
     /* FIXME: remove all all occurrences of printf and scanf
      * in favor of automated test flow.
      */
+#ifndef TEST
     printf("input unsorted data line-by-line\n");
+#endif
     for (int i = 0; i < data_count; ++i) {
         char data[MAX_LAST_NAME_LEN];
         scanf("%s", &data);
