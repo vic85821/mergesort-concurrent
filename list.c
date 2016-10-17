@@ -4,21 +4,13 @@
 
 #include "list.h"
 
-static node_t *node_new(val_t val, node_t *next)
-{
-    /* allocate node */
-    node_t *node = malloc(sizeof(node_t));
-    strcpy(node->data,val);
-    node->next = next;
-    return node;
-}
-
-llist_t *list_new()
+llist_t *list_new(int size)
 {
     /* allocate list */
     llist_t *list = malloc(sizeof(llist_t));
-    list->head = NULL;
+    list->head = malloc(sizeof(node_t) * size);
     list->size = 0;
+    list->max_size = size;
     return list;
 }
 
@@ -28,37 +20,25 @@ llist_t *list_new()
  */
 int list_add(llist_t *list, val_t val)
 {
-    node_t *e = node_new(val, NULL);
-    e->next = list->head;
-    list->head = e;
+    if(list->size >= list->max_size)
+        return -1;
+
+    node_t e;
+    strcpy(e.data,val);
+    e.index = list->size;
     list->size++;
     return 0;
 }
 
-/*
- * get the node specify by index
- * if the index is out of range, it will return NULL
- */
-node_t *list_nth(llist_t *list, uint32_t idx)
-{
-    if (idx > list->size)
-        return NULL;
-    node_t *head = list->head;
-    while (idx--)
-        head = head->next;
-    return head;
-}
-
 void list_print(llist_t *list)
 {
-    node_t *cur = list->head;
+    int pos = 0;
     /* FIXME: we have to validate the sorted results in advance. */
 #ifndef TEST
     printf("\nsorted results:\n");
 #endif
-    while (cur) {
-        printf("%s\n", cur->data);
-        cur = cur->next;
+    while (pos < list->max_size) {
+        printf("%s\n", list->head[i]->data);
     }
 #ifndef TEST
     printf("\n");
