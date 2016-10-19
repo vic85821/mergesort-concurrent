@@ -4,6 +4,7 @@
 
 #include "list.h"
 
+
 llist_t *list_new(int size)
 {
     /* allocate list */
@@ -26,7 +27,9 @@ int list_add(llist_t *list, val_t val)
     node_t e;
     strcpy(e.data,val);
     e.index = list->size;
+    list->head[list->size] = e;
     list->size++;
+
     return 0;
 }
 
@@ -37,8 +40,8 @@ void list_print(llist_t *list)
 #ifndef TEST
     printf("\nsorted results:\n");
 #endif
-    while (pos < list->max_size) {
-        printf("%s\n", list->head[i]->data);
+    while (pos < list->size) {
+        printf("%s\n", list->head[pos++].data);
     }
 #ifndef TEST
     printf("\n");

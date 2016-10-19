@@ -18,48 +18,46 @@ static llist_t *the_list = NULL;
 static int thread_count = 0, data_count = 0, max_cut = 0;
 static tpool_t *pool = NULL;
 
+void cut_func(void *data);
+
 llist_t *merge_list(llist_t *a, llist_t *b)
 {
-    llist_t *_list = list_new();
-    node_t *current = NULL;
+    printf("a: from=%d,size=%d\nb: from=%d,size=%d\n",a->head[0].index,a->size,b->head[0].index,b->size);
+    llist_t *_list = malloc(sizeof(llist_t));
+
+    node_t *tmp_ptr = (node_t *)
+                      ((intptr_t) a->head * (a->head[0].index < b->head[0].index) +
+                       (intptr_t) b->head * (b->head[0].index < a->head[0].index));
+    _list->max_size = a->max_size + b->max_size;
+
+    val_t *tmp_list = malloc(sizeof(val_t) * (a->size + b->size));
+    int tmp = 0;
     while (a->size && b->size) {
         llist_t *small = (llist_t *)
-                         ((intptr_t) a * (strcmp(a->head->data,b->head->data) < 0 ? 1:0) +
-                          (intptr_t) b * (strcmp(a->head->data,b->head->data) < 0 ? 0:1));
-        if (current) {
-            current->next = small->head;
-            current = current->next;
-        } else {
-            _list->head = small->head;
-            current = _list->head;
-        }
-        small->head = small->head->next;
+                         ((intptr_t) a * (strcmp(a->head[0].data,b->head[0].data) < 0 ? 1:0)+
+                          (intptr_t) b * (strcmp(a->head[0].data,b->head[0].data) < 0 ? 0:1));
+        strcpy(tmp_list[tmp++],small->head[0].data);
         --small->size;
-        ++_list->size;
-        current->next = NULL;
+        small->head = &small->head[1];
     }
 
     llist_t *remaining = (llist_t *) ((intptr_t) a * (a->size > 0) +
                                       (intptr_t) b * (b->size > 0));
-    if (current) current->next = remaining->head;
-    _list->size += remaining->size;
-    free(a);
-    free(b);
-    return _list;
-}
 
-llist_t *merge_sort(llist_t *list)
-{
-    if (list->size < 2)
-        return list;
-    int mid = list->size / 2;
-    llist_t *left = list;
-    llist_t *right = list_new();
-    right->head = list_nth(list, mid);
-    right->size = list->size - mid;
-    list_nth(list, mid - 1)->next = NULL;
-    left->size = mid;
-    return merge_list(merge_sort(left), merge_sort(right));
+    while(remaining->size) {
+        strcpy(tmp_list[tmp++],remaining->head[0].data);
+        remaining->size--;
+        remaining->head = (&remaining->head[1]);
+    }
+    _list->head = tmp_ptr;
+    for(int i = 0; i < tmp; ++i) {
+        _list->size++;
+        strcpy(_list->head[i].data,tmp_list[i]);
+        printf("%s\n",_list->head[i].data);
+    }
+
+    free(tmp_list);
+    return _list;
 }
 
 void merge(void *data)
@@ -72,12 +70,21 @@ void merge(void *data)
             tmp_list = _list;
             pthread_mutex_unlock(&(data_context.mutex));
         } else {
-            tmp_list = NULL;
-            pthread_mutex_unlock(&(data_context.mutex));
-            task_t *_task = (task_t *) malloc(sizeof(task_t));
-            _task->func = merge;
-            _task->arg = merge_list(_list, _t);
-            tqueue_push(pool->queue, _task);
+            if( !(_list->head[0].index + _list->size == tmp_list->head[0].index ||
+                    _list->head[0].index == tmp_list->head[0].index + tmp_list->size)) {
+                task_t *_task = (task_t *) malloc(sizeof(task_t));
+                _task->func = merge;
+                _task->arg = _list;
+                tqueue_push(pool->queue, _task);
+                pthread_mutex_unlock(&(data_context.mutex));
+            } else {
+                tmp_list = NULL;
+                pthread_mutex_unlock(&(data_context.mutex));
+                task_t *_task = (task_t *) malloc(sizeof(task_t));
+                _task->func = merge;
+                _task->arg = merge_list(_list, _t);
+                tqueue_push(pool->queue, _task);
+            }
         }
     } else {
         the_list = _list;
@@ -93,17 +100,18 @@ void cut_func(void *data)
     llist_t *list = (llist_t *) data;
     pthread_mutex_lock(&(data_context.mutex));
     int cut_count = data_context.cut_thread_count;
-    if (list->size > 1 && cut_count < max_cut) {
+    if (list->size > 1 /*&& cut_count < max_cut*/) {
         ++data_context.cut_thread_count;
         pthread_mutex_unlock(&(data_context.mutex));
 
         /* cut list */
         int mid = list->size / 2;
-        llist_t *_list = list_new();
-        _list->head = list_nth(list, mid);
+        llist_t *_list = malloc(sizeof(llist_t));
+        _list->head = &(list->head[mid]);
         _list->size = list->size - mid;
-        list_nth(list, mid - 1)->next = NULL;
+        _list->max_size = list->max_size / 2;
         list->size = mid;
+        list->max_size = list->max_size / 2;
 
         /* create new task: left */
         task_t *_task = (task_t *) malloc(sizeof(task_t));
@@ -118,7 +126,7 @@ void cut_func(void *data)
         tqueue_push(pool->queue, _task);
     } else {
         pthread_mutex_unlock(&(data_context.mutex));
-        merge(merge_sort(list));
+        merge(list);
     }
 }
 
@@ -148,11 +156,15 @@ int main(int argc, char const *argv[])
     }
     thread_count = atoi(argv[1]);
     data_count = atoi(argv[2]);
-    max_cut = thread_count * (thread_count <= data_count) +
-              data_count * (thread_count > data_count) - 1;
+    //max_cut = thread_count * (thread_count <= data_count) +
+    //          data_count * (thread_count > data_count) - 1;
 
+    if(data_count >= ARRAY_MAX_SIZE) {
+        printf("data size is larger than limit\n");
+        return -1;
+    }
     /* Read data */
-    the_list = list_new();
+    the_list = list_new(ARRAY_MAX_SIZE);
 
     /* FIXME: remove all all occurrences of printf and scanf
      * in favor of automated test flow.
@@ -161,8 +173,8 @@ int main(int argc, char const *argv[])
     printf("input unsorted data line-by-line\n");
 #endif
     for (int i = 0; i < data_count; ++i) {
-        char data[MAX_LAST_NAME_LEN];
-        scanf("%s", &data);
+        char *data = malloc(sizeof(char) * MAX_LAST_NAME_LEN);
+        scanf("%s", data);
         list_add(the_list, data);
     }
 
