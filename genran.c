@@ -9,9 +9,9 @@ int main()
     srand(time(NULL));
 
     scanf("%lld",&size);
-    size *= 1048576;    //轉換成byte
-    
-    while(length <= size){
+    size *= 1048576 / 1024;    //轉換成byte
+
+    while(length <= size) {
         for(counter = 0; counter < 100; ++counter)
             fprintf(fp, "%d\n", rand());
 
@@ -19,7 +19,7 @@ int main()
         length = ftell(fp);
     }
     fclose(fp);
-printf("%lld\n",RAND_MAX);
+    printf("%d\n",RAND_MAX);
     printf("over\n");
     return 0;
 }

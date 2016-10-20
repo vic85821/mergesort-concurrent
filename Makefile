@@ -37,6 +37,9 @@ check_right :
 	./check_right 4 349900 < input.txt > output.txt
 	diff words.txt output.txt
 
+generate:
+	gcc -o genran genran.c
+
 clean:
 	rm -f $(OBJS) sort check_right
 	@rm -rf $(deps)
