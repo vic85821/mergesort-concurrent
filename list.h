@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define MAX_LAST_NAME_LEN 16
+#define MAX_LAST_NAME_LEN 20
 #define ARRAY_MAX_SIZE 100000
 
 typedef char val_t[MAX_LAST_NAME_LEN];
@@ -16,7 +16,6 @@ typedef struct node {
 typedef struct llist {
     node_t *head;
     uint32_t size;
-    uint32_t max_size;
 } llist_t;
 
 llist_t *list_new(int size);

@@ -1,9 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
 #include "list.h"
-
 
 llist_t *list_new(int size)
 {
@@ -11,7 +9,6 @@ llist_t *list_new(int size)
     llist_t *list = malloc(sizeof(llist_t));
     list->head = malloc(sizeof(node_t) * size);
     list->size = 0;
-    list->max_size = size;
     return list;
 }
 
@@ -21,9 +18,6 @@ llist_t *list_new(int size)
  */
 int list_add(llist_t *list, val_t val)
 {
-    if(list->size >= list->max_size)
-        return -1;
-
     node_t e;
     strcpy(e.data,val);
     e.index = list->size;

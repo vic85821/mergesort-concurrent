@@ -15,22 +15,22 @@ struct {
 static llist_t *tmp_list;
 static llist_t *the_list = NULL;
 
-static int thread_count = 0, data_count = 0, max_cut = 0;
+static int thread_count = 0, data_count = 0;
 static tpool_t *pool = NULL;
 
 void cut_func(void *data);
 
 llist_t *merge_list(llist_t *a, llist_t *b)
 {
-    printf("a: from=%d,size=%d\nb: from=%d,size=%d\n",a->head[0].index,a->size,b->head[0].index,b->size);
     llist_t *_list = malloc(sizeof(llist_t));
+    _list->size = 0;
 
     node_t *tmp_ptr = (node_t *)
                       ((intptr_t) a->head * (a->head[0].index < b->head[0].index) +
                        (intptr_t) b->head * (b->head[0].index < a->head[0].index));
-    _list->max_size = a->max_size + b->max_size;
 
     val_t *tmp_list = malloc(sizeof(val_t) * (a->size + b->size));
+
     int tmp = 0;
     while (a->size && b->size) {
         llist_t *small = (llist_t *)
@@ -53,7 +53,6 @@ llist_t *merge_list(llist_t *a, llist_t *b)
     for(int i = 0; i < tmp; ++i) {
         _list->size++;
         strcpy(_list->head[i].data,tmp_list[i]);
-        printf("%s\n",_list->head[i].data);
     }
 
     free(tmp_list);
@@ -87,11 +86,13 @@ void merge(void *data)
             }
         }
     } else {
+        pthread_mutex_lock(&(data_context.mutex));
         the_list = _list;
         task_t *_task = (task_t *) malloc(sizeof(task_t));
         _task->func = NULL;
         tqueue_push(pool->queue, _task);
         list_print(_list);
+        pthread_mutex_unlock(&(data_context.mutex));
     }
 }
 
@@ -99,7 +100,6 @@ void cut_func(void *data)
 {
     llist_t *list = (llist_t *) data;
     pthread_mutex_lock(&(data_context.mutex));
-    int cut_count = data_context.cut_thread_count;
     if (list->size > 1 /*&& cut_count < max_cut*/) {
         ++data_context.cut_thread_count;
         pthread_mutex_unlock(&(data_context.mutex));
@@ -109,9 +109,7 @@ void cut_func(void *data)
         llist_t *_list = malloc(sizeof(llist_t));
         _list->head = &(list->head[mid]);
         _list->size = list->size - mid;
-        _list->max_size = list->max_size / 2;
         list->size = mid;
-        list->max_size = list->max_size / 2;
 
         /* create new task: left */
         task_t *_task = (task_t *) malloc(sizeof(task_t));
