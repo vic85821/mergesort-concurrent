@@ -171,7 +171,7 @@ int main(int argc, char const *argv[])
     //max_cut = thread_count * (thread_count <= data_count) +
     //          data_count * (thread_count > data_count) - 1;
 
-    if(data_count >= ARRAY_MAX_SIZE) {
+    if(data_count > ARRAY_MAX_SIZE) {
         printf("data size is larger than limit\n");
         return -1;
     }
