@@ -28,14 +28,6 @@ test: sort
 		done > output.txt; \
 	done;
 
-check_right :
-	$(CC) $(CHECK_CFLAGS) -o list.o -MMD -MF .list.o.d -c list.c
-	$(CC) $(CHECK_CFLAGS) -o threadpool.o -MMD -MF .threadpool.o.d -c threadpool.c
-	$(CC) $(CHECK_CFLAGS) -o main.o -MMD -MF .main.o.d -c main.c
-	$(CC) $(CFLAGS) -o $@ $(OBJS) -rdynamic
-	uniq words.txt | sort -R > input.txt
-	./check_right 4 349900 < input.txt > output.txt
-	diff words.txt output.txt
 
 generate:
 	gcc -o genran genran.c
