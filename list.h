@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #define MAX_LAST_NAME_LEN 20
-#define ARRAY_MAX_SIZE 100000
+#define ARRAY_MAX_SIZE 2000
 
 typedef char val_t[MAX_LAST_NAME_LEN];
 

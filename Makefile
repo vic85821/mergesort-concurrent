@@ -22,7 +22,7 @@ sort: $(OBJS)
 
 test: sort
 	for i in `seq 1 1 1000`; do \
-		uniq words.txt | sort -R > input.txt		
+		uniq words.txt | sort -R > input.txt; \
 		for j in 1 2 4 8 16; do \
 			./sort $$j 349900; \
 		done > output.txt; \
