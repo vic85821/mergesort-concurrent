@@ -33,11 +33,9 @@ void list_print(llist_t *list)
     /* FIXME: we have to validate the sorted results in advance. */
 #ifndef TEST
     printf("\nsorted results:\n");
-#endif
     while (pos < list->size) {
         printf("%s\n", list->head[pos++].data);
     }
-#ifndef TEST
     printf("\n");
 #endif
 }

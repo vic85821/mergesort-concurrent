@@ -203,8 +203,12 @@ int main(int argc, char const *argv[])
     tqueue_push(pool->queue, _task);
     /* release thread pool */
     tpool_free(pool);
+
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time1 = diff_in_second(start, end);
-    printf("execution time: %lf\n",cpu_time1);
+    //printf("execution time: %lf\n",cpu_time1);
+    printf(" %lf ",cpu_time1);
+
     return 0;
 }
+

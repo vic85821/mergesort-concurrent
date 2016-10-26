@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -std=gnu99 -Wall -g -pthread
-CHECK_CFLAGS = -std=gnu99 -Wall -g -pthread -DTEST
+CHECK_CFLAGS = -std=gnu99 -Wall -g -pthread
 OBJS = list.o threadpool.o main.o
 
 .PHONY: all clean test
@@ -15,19 +15,20 @@ $(GIT_HOOKS):
 
 deps := $(OBJS:%.o=.%.o.d)
 %.o: %.c
-	$(CC) $(CFLAGS) -o $@ -MMD -MF .$@.d -c $<
+	$(CC) $(CHECK_CFLAGS) -o $@ -MMD -MF .$@.d -c $<
 
 sort: $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) -rdynamic
+	$(CC) $(CHECK_CFLAGS) -o $@ $(OBJS) -rdynamic
 
 test: sort
-	for i in `seq 1 1 1000`; do \
-		uniq words.txt | sort -R > input.txt		
+	for i in `seq 1 1 100`; do \
+		printf "%d" $$i;\
+		uniq input.txt | sort -R > input1.txt; \
 		for j in 1 2 4 8 16; do \
-			./sort $$j 349900; \
-		done > output.txt; \
-	done;
-
+			./sort $$j 2000 < input1.txt; \
+		done; \
+		printf "\n"; \
+	done > output.txt
 
 generate:
 	gcc -o genran genran.c
