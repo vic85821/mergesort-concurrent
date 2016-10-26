@@ -21,9 +21,14 @@ sort: $(OBJS)
 	$(CC) $(CHECK_CFLAGS) -o $@ $(OBJS) -rdynamic
 
 test: sort
+<<<<<<< HEAD
 	for i in `seq 1 1 100`; do \
 		printf "%d" $$i;\
 		uniq input.txt | sort -R > input1.txt; \
+=======
+	for i in `seq 1 1 1000`; do \
+		uniq words.txt | sort -R > input.txt; \
+>>>>>>> 6d24b95d416079fc9ba5ecd9a2909afabf8eaf2e
 		for j in 1 2 4 8 16; do \
 			./sort $$j 2000 < input1.txt; \
 		done; \
